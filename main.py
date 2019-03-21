@@ -56,92 +56,55 @@ def wake_up_grbl():
     bytes_to_send = b'\r\n\r\n'
     ard_serial.write(bytes_to_send)
     time.sleep(2)   # Wait for grbl to initialize
-    print(ard_serial.readline())
-    print(ard_serial.readline())
-    print(ard_serial.readline())
     ard_serial.flushInput()  # Flush startup text in serial input
 
 
+def send_to_serial(gcode):
+    command_to_send = gcode
+    print("\r\n" + command_to_send)
+    ard_serial.write(bytes(command_to_send, encoding="ascii"))
+    while True:
+        grbl_says = str(ard_serial.readline())
+        if grbl_says != '':                 # Imprimir los mensajes no vacíos
+            print("Grbl says: " + grbl_says)
+        if grbl_says.find("") > (-1):     # Cuando encuentre ok, salir.
+            break
+
+
 def mapear():
-    gcode_to_send = ["G91 G38.2 Z-1 F50",
-                     "G91 G38.5 Z1 F50",
-                     "G91 G38.2 Z-1 F10",
-                     "G91 G38.5 Z1 F10",
-                     "M2"]
-    # Coordenadas relativas, velocidad 10
-    # Zondear bajando Z
-    # Zondear subiendo Z
-    # Stream g-code to grbl
+    # Verificar que la linea esté desocupada
+    while True:
+        grbl_says = str(ard_serial.readline())
+        if grbl_says != '':                 # Imprimir los mensajes no vacíos
+            print("Grbl says: " + grbl_says)
+        if grbl_says.find("''") > (-1):     # Si hay mensaje vacío (timeout)
+            break                           # Salir del while
+
+    gcodes = ["G91",
+              "G1 Z1 F50",
+              "G38.2 Z-10 F50",
+              "G38.5 Z1 F50",
+              "G38.2 Z-1 F10",
+              "G38.5 Z1 F10",
+              "G92 Z0",
+              "$X",
+              "M2"
+              ]
+
+    for i in range(len(gcodes)):
+        send_to_serial(gcodes[i] + "\r\n")
+
+    """command_to_send = "G91 \r\n"
+    command_to_send = gcodes[0]
+    print("\r\n" + command_to_send)
+    ard_serial.write(bytes(command_to_send, encoding="ascii"))
+    while True:
+        grbl_says = str(ard_serial.readline())
+        if grbl_says != '':                 # Imprimir los mensajes no vacíos
+            print("Grbl says: " + grbl_says)
+        if grbl_says.find("ok") > (-1):     # Cuando encuentre ok, salir.
+            break
     """
-    for i in range(len(gcode_to_send)):
-        print('Sending: ' + str(gcode_to_send[i]))   # Preview comando
-        command_to_send = "gcode_to_send[i]" + '\r\n'  # Asignar linea a enviar
-        ard_serial.write(bytes(command_to_send,
-                               encoding="ascii"))    # Enviar gcode
-        grbl_out = ard_serial.readline()			 # Esperar por \n de grbl
-        # print(' : ' + grbl_out.strip(str(grbl_out)))
-        print("Grbl says: " + str(grbl_out))
-    """
-    print("Grbl says: " + str(ard_serial.readline()))
-    print("Grbl says: " + str(ard_serial.readline()))
-    print("Grbl says: " + str(ard_serial.readline()))
-
-    command_to_send = "G91 \r\n"
-    print("\r\n\r\n" + command_to_send)
-    ard_serial.write(bytes(command_to_send, encoding="ascii"))
-    while True:
-        print("Grbl says: " + str(ard_serial.readline()))
-        if ard_serial.readline() == b'ok\r\n':
-            break
-
-    command_to_send = "G38.2 Z-10 F50 \r\n"
-    print("\r\n\r\n" + command_to_send)
-    ard_serial.write(bytes(command_to_send, encoding="ascii"))
-    while True:
-        print("Grbl says: " + str(ard_serial.readline()))
-        if ard_serial.readline() == b'ok\r\n':
-            break
-
-    command_to_send = "G38.5 Z1 F50 \r\n"
-    print("\r\n\r\n" + command_to_send)
-    ard_serial.write(bytes(command_to_send, encoding="ascii"))
-    while True:
-        print("Grbl says: " + str(ard_serial.readline()))
-        if ard_serial.readline() == b'ok\r\n':
-            break
-
-    command_to_send = "G38.2 Z-1 F10 \r\n"
-    print("\r\n\r\n" + command_to_send)
-    ard_serial.write(bytes(command_to_send, encoding="ascii"))
-    while True:
-        print("Grbl says: " + str(ard_serial.readline()))
-        if ard_serial.readline() == b'ok\r\n':
-            break
-
-    command_to_send = "G38.5 Z1 F10 \r\n"
-    print("\r\n\r\n" + command_to_send)
-    ard_serial.write(bytes(command_to_send, encoding="ascii"))
-    while True:
-        print("Grbl says: " + str(ard_serial.readline()))
-        if ard_serial.readline() == b'ok\r\n':
-            break
-
-    command_to_send = "G92 Z0 \r\n"
-    print("\r\n\r\n" + command_to_send)
-    ard_serial.write(bytes(command_to_send, encoding="ascii"))
-    while True:
-        print("Grbl says: " + str(ard_serial.readline()))
-        if ard_serial.readline() == b'ok\r\n':
-            break
-
-    command_to_send = "$X \r\n\r\n"
-    print("\r\n\r\n" + command_to_send)
-    ard_serial.write(bytes(command_to_send, encoding="ascii"))
-    while True:
-        print("Grbl says: " + str(ard_serial.readline()))
-        if ard_serial.readline() == b'ok\r\n':
-            break
-            
     return 1
 
 
