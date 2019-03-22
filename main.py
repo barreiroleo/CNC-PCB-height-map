@@ -20,125 +20,131 @@ import time
 ard_serial = serial.Serial('/dev/ttyACM0', 115200, timeout=0.5)
 
 
-def input_datos():
-    print("Margenes de escaneo:")
-    # x_inf_izq = float(input("X inferior izq: "))
-    # y_inf_izq = float(input("Y inferior izq: "))
-    # x_sup_der = float(input("X superior der: "))
-    # y_sup_der = float(input("Y superior der: "))
-    # Imprimir posiciones para verificar la entrada de datos
-    # n_puntos_x = float(input("Cantidad de puntos en X: "))
-    # n_puntos_y = float(input("Cantidad de puntos en Y: "))
-    x_inf_izq = 0
-    y_inf_izq = 0
-    x_sup_der = 10
-    y_sup_der = 10
-    n_puntos_x = 2
-    n_puntos_y = 2
-    n_medidas = n_puntos_x * n_puntos_y
-    avance_x = (x_sup_der - x_inf_izq) / n_puntos_x
-    avance_y = (y_sup_der - y_inf_izq) / n_puntos_y
-
-    tupla_posiciones = (x_inf_izq, y_inf_izq, x_sup_der, y_sup_der)
-    print("TuplaPosiciones: " + str(tupla_posiciones))
-    print("Avance X: " + str(avance_x))
-    print("Avance Y: " + str(avance_y))
-
-
-def wake_up_grbl():
-    # Wake up grbl
-    bytes_to_send = b'\r\n\r\n'
-    ard_serial.write(bytes_to_send)
-    time.sleep(2)            # Wait for grbl to initialize
-    ard_serial.flushInput()  # Flush startup text in serial input
-
-
-def close_serial():
-    ard_serial.close()
-    return 1
-
-
-def send_to_serial(code_to_send):
+class milling_cnc():
+    """ Definición de la clase milling:
+        tupla puntos_extremos
+          [x_inf_izq, y_inf_izq, x_sup_der, y_sup_der, x_cant, y cant]
     """
-    Recibe un array con dos elementos:
-    Elemento 1: Gcode
-    Elemento 2: Tipo de mensaje de retorno
-    """
+    x_pos, y_pos, z_pos = 0
+    x_inf_izq, y_inf_izq = 0
+    x_sup_der, y_sup_der = 0
+    x_cant, y_cant = 0
+    total_medidas = 0
+    avance_x = 0
+    avance_y = 0
 
-    print(code_to_send[0])
-    code_to_send[0] = code_to_send[0] + "\r\n"
-    ard_serial.write(bytes(code_to_send[0], encoding="ascii"))
-    while True:
-        grbl_says = str(ard_serial.readline())
-        # if grbl_says != '':                   # Imprimir mensajes no vacíos
-        #    print("Grbl says: " + grbl_says)
-        if code_to_send[1] == 1:
-            if grbl_says.find("ok") > (-1):     # Cuando encuentre ok, salir.
-                break
-        if code_to_send[1] == 2:
-            if grbl_says.find("PRB") > (-1):    # Cuando encuentre PRB, salir.
+    def __init__(self, puntos_extremos):
+        # self.x_inf_izq = float(input("X inferior izq: "))
+        # self.y_inf_izq = float(input("Y inferior izq: "))
+        # self.x_sup_der = float(input("X superior izq: "))
+        # self.y_sup_der = float(input("X superior izq: "))
+        # self.x_cant    = float(input("X cantidad med: "))
+        # self.y_cant    = float(input("X cantidad med: "))
+        puntos_extremos = [0, 0, 10, 10, 2, 2]
+        self.x_inf_izq, self.y_inf_izq = puntos_extremos[0], puntos_extremos[1]
+        self.x_sup_der, self.y_sup_der = puntos_extremos[2], puntos_extremos[3]
+        self.x_cant, self.y_cant = puntos_extremos[4], puntos_extremos[5]
+
+        self.total_medidas = self.x_cant * self.y_cant
+        self.avance_x = (self.x_sup_der - self.x_inf_izq) / self.x.cant
+        self.avance_y = (self.y_sup_der - self.y_inf_izq) / self.y.cant
+
+        # tupla_posiciones = (self.x_inf_izq, self.y_inf_izq,
+        #                     self.x_sup_der, self.y_sup_der)
+        # print("Posiciones: " + str(tupla_posiciones))
+        # print("Avance X: "   + str(self.avance_x))
+        # print("Avance Y: "   + str(self.avance_y))
+
+    def consulta_posicion(self):
+        self.wait_clean_buffer()
+        gcode_to_send = "?" + "\r\n"
+        ard_serial.write(bytes(gcode_to_send, encoding="ascii"))
+        while True:
+            grbl_says = str(ard_serial.readline())
+            # Encuentra PRB, parsea y sale
+            if grbl_says.find("PRB") > (-1):
                 print("Grbl says: " + grbl_says + "\n")
+                var_aux_a = str(grbl_says)
+                indice_first_PRB = var_aux_a.find("PRB") + 1
+                indice_second_PRB = var_aux_a.find("PRB", indice_first_PRB)
+                var_aux_a = var_aux_a[indice_first_PRB:indice_second_PRB]
+                var_aux_a = var_aux_a.split(",")
+                # En este punto hay una tupla con los elementos para:
+                # x_pos, y_pos, z_pos
+                self.x_pos, self.y_pos = var_aux_a[0], var_aux_a[1]
+                self.z_pos = var_aux_a[2]
+                tupla_aux = [self.x_pos, self.y_pos, self.z_pos]
+                for i in tupla_aux:
+                    print(tupla_aux)
                 break
 
+    def probe_z(self, reset_zero):
+        self.wait_clean_buffer()
+        # 1er elemento: gcode. 2do elemento: Código que espera
+        gcodes = [["G91", "ok"], ["G1 Z1 F50", "ok"],
+                  ["G38.2 Z-10 F50", "PRB"], ["G38.5 Z01 F1", "PRB"],
+                  ["G38.2 Z-1 F1", "PRB"], ["G38.5 Z01 F1", "PRB"],
+                  ["G04 P5", "ok"],  # Pausa en seg
+                  ["M2", "ok"], ["G90", "ok"]
+                  ]
+        for i in range(len(gcodes)):
+            self.send_to_grbl(gcodes[i])
 
-def wait_clean_buffer():
-    # Verificar que la linea esté desocupada
-    while True:
-        grbl_says = str(ard_serial.readline())
-        if grbl_says != '':                 # Imprimir los mensajes no vacíos
-            print("Grbl says: " + grbl_says)
-        if grbl_says.find("''") > (-1):     # Si hay mensaje vacío (timeout)
-            break                           # Salir del while
+    def avanzar(self, X_avance, Y_avance):
+        self.wait_clean_buffer()
+        # 1er elemento: gcode. 2do elemento: Código que espera
+        gcodes = [["G90", "ok"], ["G1 Z1 F10", "ok"], ["G91", "ok"],
+                  ["G1 X" + str(X_avance) + "Y" + str(Y_avance), "ok"],
+                  ["M2", "ok"], ["G90", "ok"]
+                  ]
+        for i in range(len(gcodes)):
+            self.send_to_grbl(gcodes[i])
 
+    def reset_coordinates(self):
+        self.wait_clean_buffer()
+        gcodes = ["G92 X0 Z0 Y0", "ok"]  # Establece coordenadas en Z = 0
+        self.send_to_grbl(gcodes[0])
 
-def probe_z():
-    wait_clean_buffer()
+    def send_to_grbl(self, code_to_send):
+        # Recibe un array con dos elementos:
+        # Elem 0: Gcode, Elem 1: Tipo de mensaje de retorno
+        print(code_to_send[0])
+        code_to_send[0] = code_to_send[0] + "\r\n"
+        ard_serial.write(bytes(code_to_send[0], encoding="ascii"))
+        while True:
+            grbl_says = str(ard_serial.readline())
+            # Cuando encuentre el código esperado en el mensaje salir
+            if grbl_says.find(code_to_send[1]) > (-1):
+                break
 
-    gcodes = [["G91", 1],             # Tupla de tuplas:
-              ["G1 Z1 F50", 1],       # 1er elemento: gcode
-              ["G38.2 Z-10 F50", 2],  # 2do elemento: tipo mensaje de retorno
-              ["G38.5 Z01 F1", 2],      # Tipo 1: "ok"
-              ["G38.2 Z-1 F1", 2],      # Tipo 2: "PRB"
-              ["G38.5 Z01 F1", 2],
-              ["?", 1],
-              ["G04 P5", 1],            # Pausa de 1seg
-              ["?", 1],
-              ["$X", 1],
-              ["M2", 1]
-              ]
+    def wait_clean_buffer(self):
+        # Verificar que la linea esté desocupada
+        while True:
+            grbl_says = str(ard_serial.readline())
+            if grbl_says != '':                 # Mensajes no vacíos
+                print("Grbl says: " + grbl_says)
+            if grbl_says.find("''") > (-1):     # Hay mensaje vacío (timeout)
+                break                           # Salir del while
 
-    for i in range(len(gcodes)):
-        send_to_serial(gcodes[i])
+    def wake_up_grbl(self):
+        bytes_to_send = b'\r\n\r\n'
+        ard_serial.write(bytes_to_send)
+        time.sleep(2)            # Wait for grbl to initialize
+        ard_serial.flushInput()  # Flush startup text in serial input
 
-    return 1
-
-
-def reset_coordinates():
-    # Verificar que la linea esté desocupada
-    wait_clean_buffer()
-
-    gcodes = [["?", 1],
-              ["G92 X0 Z0 Y0", 1],  # Establece coordenadas en Z = 0
-              ["M2", 1]
-              ]
-
-    for i in range(len(gcodes)):
-        send_to_serial(gcodes[i])
-
-
-def mapping():
-    probe_z()
-    reset_coordinates()
-
-    pass
+    def close_grbl(self):
+        ard_serial.close()
+        return 1
 
 
 def main():
-    # Open grbl serial port
-    input_datos()
-    wake_up_grbl()
-    mapping()
-    close_serial()
+    fresa = milling_cnc()
+    fresa.consulta_posicion()
+    fresa.probe_z()
+    fresa.reset_coordinates()
+    fresa.avanzar(fresa.avance_x, fresa.avance_y)
+    fresa.probe_z()
+    fresa.close_grbl()
 
 
 main()
