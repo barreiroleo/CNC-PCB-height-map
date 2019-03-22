@@ -25,15 +25,15 @@ class milling_cnc():
         tupla puntos_extremos
           [x_inf_izq, y_inf_izq, x_sup_der, y_sup_der, x_cant, y cant]
     """
-    x_pos, y_pos, z_pos = 0
-    x_inf_izq, y_inf_izq = 0
-    x_sup_der, y_sup_der = 0
-    x_cant, y_cant = 0
+    x_pos, y_pos, z_pos = 0,0,0
+    x_inf_izq, y_inf_izq = 0,0
+    x_sup_der, y_sup_der = 0,0
+    x_cant, y_cant = 0,0
     total_medidas = 0
     avance_x = 0
     avance_y = 0
 
-    def __init__(self, puntos_extremos):
+    def __init__(self):
         # self.x_inf_izq = float(input("X inferior izq: "))
         # self.y_inf_izq = float(input("Y inferior izq: "))
         # self.x_sup_der = float(input("X superior izq: "))
@@ -46,8 +46,8 @@ class milling_cnc():
         self.x_cant, self.y_cant = puntos_extremos[4], puntos_extremos[5]
 
         self.total_medidas = self.x_cant * self.y_cant
-        self.avance_x = (self.x_sup_der - self.x_inf_izq) / self.x.cant
-        self.avance_y = (self.y_sup_der - self.y_inf_izq) / self.y.cant
+        self.avance_x = (self.x_sup_der - self.x_inf_izq) / self.x_cant
+        self.avance_y = (self.y_sup_der - self.y_inf_izq) / self.y_cant
 
         # tupla_posiciones = (self.x_inf_izq, self.y_inf_izq,
         #                     self.x_sup_der, self.y_sup_der)
@@ -62,23 +62,24 @@ class milling_cnc():
         while True:
             grbl_says = str(ard_serial.readline())
             # Encuentra PRB, parsea y sale
-            if grbl_says.find("PRB") > (-1):
+            print("Grbl says: " + grbl_says)
+            if grbl_says.find("MPos") > (-1):   # Para consulta
+                # if grbl_says.find("PRB") > (-1):  # Para zonda
                 print("Grbl says: " + grbl_says + "\n")
                 var_aux_a = str(grbl_says)
-                indice_first_PRB = var_aux_a.find("PRB") + 1
-                indice_second_PRB = var_aux_a.find("PRB", indice_first_PRB)
+                indice_first_PRB = var_aux_a.find(":") + 1
+                indice_second_PRB = var_aux_a.find("|", indice_first_PRB)
                 var_aux_a = var_aux_a[indice_first_PRB:indice_second_PRB]
                 var_aux_a = var_aux_a.split(",")
                 # En este punto hay una tupla con los elementos para:
                 # x_pos, y_pos, z_pos
                 self.x_pos, self.y_pos = var_aux_a[0], var_aux_a[1]
                 self.z_pos = var_aux_a[2]
-                tupla_aux = [self.x_pos, self.y_pos, self.z_pos]
-                for i in tupla_aux:
-                    print(tupla_aux)
+                for i in var_aux_a:
+                    print(var_aux_a)
                 break
 
-    def probe_z(self, reset_zero):
+    def probe_z(self):
         self.wait_clean_buffer()
         # 1er elemento: gcode. 2do elemento: Código que espera
         gcodes = [["G91", "ok"], ["G1 Z1 F50", "ok"],
@@ -103,7 +104,7 @@ class milling_cnc():
     def reset_coordinates(self):
         self.wait_clean_buffer()
         gcodes = ["G92 X0 Z0 Y0", "ok"]  # Establece coordenadas en Z = 0
-        self.send_to_grbl(gcodes[0])
+        self.send_to_grbl(gcodes)
 
     def send_to_grbl(self, code_to_send):
         # Recibe un array con dos elementos:
@@ -139,6 +140,9 @@ class milling_cnc():
 
 def main():
     fresa = milling_cnc()
+    fresa.wake_up_grbl()
+    fresa.reset_coordinates()
+    time.sleep(2)
     fresa.consulta_posicion()
     fresa.probe_z()
     fresa.reset_coordinates()
