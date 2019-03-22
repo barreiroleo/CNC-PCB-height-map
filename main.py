@@ -1,16 +1,12 @@
 """
 El script debe:
-
 Conectarse con el micro.
-
 Una vez que está en espera el micro, preguntar:
   Margenes de escaneo: [{x_inf_izq,y_inf_izq},{x2,y2},{x3,y3},{xf,yf}]
   Cantidad de puntos de escaneo: [{x_cant},{y_cant}]
-
 Con los datos procesar:
   Dividir la distancia máxima de cada eje entre la cantidad de puntos a sensar
   El valor obtenido es el avance que hay que darle al código G (¿Coord relat?)
-
 Posicionarse en cero automáticamente y establecer sus coordenadas Z en cero
 """
 
@@ -30,7 +26,6 @@ def input_datos():
     # y_inf_izq = float(input("Y inferior izq: "))
     # x_sup_der = float(input("X superior der: "))
     # y_sup_der = float(input("Y superior der: "))
-
     # Imprimir posiciones para verificar la entrada de datos
     # n_puntos_x = float(input("Cantidad de puntos en X: "))
     # n_puntos_y = float(input("Cantidad de puntos en Y: "))
@@ -55,6 +50,11 @@ def wake_up_grbl():
     ard_serial.write(bytes_to_send)
     time.sleep(2)            # Wait for grbl to initialize
     ard_serial.flushInput()  # Flush startup text in serial input
+
+
+def close_serial():
+    ard_serial.close()
+    return 1
 
 
 def send_to_serial(code_to_send):
@@ -90,19 +90,15 @@ def wait_clean_buffer():
             break                           # Salir del while
 
 
-def mapear():
+def probe_z():
     wait_clean_buffer()
 
     gcodes = [["G91", 1],             # Tupla de tuplas:
               ["G1 Z1 F50", 1],       # 1er elemento: gcode
               ["G38.2 Z-10 F50", 2],  # 2do elemento: tipo mensaje de retorno
               ["G38.5 Z01 F50", 2],     # Tipo 1: "ok"
-              ["G38.2 Z-1 F10", 2],     # Tipo 2: "PRB"
-              ["G38.5 Z01 F10", 2],
-              ["G38.2 Z-1 F10", 2],
-              ["G38.5 Z01 F10", 2],
-              ["G38.2 Z-1 F10", 2],
-              ["G38.5 Z01 F10", 2],
+              ["G38.2 Z-1 F1", 2],     # Tipo 2: "PRB"
+              ["G38.5 Z01 F1", 2],
               # ["G92 Z0", 1],      # Establece coordenadas en Z = 0
               # ["?", 1],
               # ["G04 P5", 1],     # Pausa de 1seg
@@ -128,17 +124,17 @@ def reset_coordinates():
         send_to_serial(gcodes[i])
 
 
-def close_serial():
-    ard_serial.close()
-    return 1
+def mapping():
+    probe_z()
+    reset_coordinates()
+    pass
 
 
 def main():
     # Open grbl serial port
     input_datos()
     wake_up_grbl()
-    mapear()
-    reset_coordinates()
+    mapping()
     close_serial()
 
 
