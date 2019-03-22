@@ -35,6 +35,7 @@ def input_datos():
     y_sup_der = 10
     n_puntos_x = 2
     n_puntos_y = 2
+    n_medidas = n_puntos_x * n_puntos_y
     avance_x = (x_sup_der - x_inf_izq) / n_puntos_x
     avance_y = (y_sup_der - y_inf_izq) / n_puntos_y
 
@@ -128,6 +129,7 @@ def reset_coordinates():
 def mapping():
     probe_z()
     reset_coordinates()
+
     pass
 
 
