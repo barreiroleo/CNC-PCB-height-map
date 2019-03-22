@@ -53,34 +53,34 @@ def wake_up_grbl():
     # Wake up grbl
     bytes_to_send = b'\r\n\r\n'
     ard_serial.write(bytes_to_send)
-    time.sleep(2)   # Wait for grbl to initialize
+    time.sleep(2)            # Wait for grbl to initialize
     ard_serial.flushInput()  # Flush startup text in serial input
 
 
-def send_to_serial(gcode):
+def send_to_serial(code_to_send):
     """
     Recibe un array con dos elementos:
     Elemento 1: Gcode
     Elemento 2: Tipo de mensaje de retorno
     """
 
-    print(gcode[0])
-    command_to_send = gcode[0] + "\r\n"
-    ard_serial.write(bytes(command_to_send, encoding="ascii"))
+    print(code_to_send[0])
+    code_to_send[0] = code_to_send[0] + "\r\n"
+    ard_serial.write(bytes(code_to_send[0], encoding="ascii"))
     while True:
         grbl_says = str(ard_serial.readline())
-        # if grbl_says != '':               # Imprimir los mensajes no vacíos
+        # if grbl_says != '':                   # Imprimir mensajes no vacíos
         #    print("Grbl says: " + grbl_says)
-        if gcode[1] == 1:
+        if code_to_send[1] == 1:
             if grbl_says.find("ok") > (-1):     # Cuando encuentre ok, salir.
                 break
-        if gcode[1] == 2:
+        if code_to_send[1] == 2:
             if grbl_says.find("PRB") > (-1):    # Cuando encuentre PRB, salir.
                 print("Grbl says: " + grbl_says + "\n")
                 break
 
 
-def mapear():
+def wait_clean_buffer():
     # Verificar que la linea esté desocupada
     while True:
         grbl_says = str(ard_serial.readline())
@@ -88,6 +88,10 @@ def mapear():
             print("Grbl says: " + grbl_says)
         if grbl_says.find("''") > (-1):     # Si hay mensaje vacío (timeout)
             break                           # Salir del while
+
+
+def mapear():
+    wait_clean_buffer()
 
     gcodes = [["G91", 1],             # Tupla de tuplas:
               ["G1 Z1 F50", 1],       # 1er elemento: gcode
@@ -113,6 +117,17 @@ def mapear():
     return 1
 
 
+def reset_coordinates():
+    # Verificar que la linea esté desocupada
+    wait_clean_buffer()
+
+    gcodes = [["G92 X0 Z0 Y0", 1],
+              ["M2", 1]
+              ]
+    for i in range(len(gcodes)):
+        send_to_serial(gcodes[i])
+
+
 def close_serial():
     ard_serial.close()
     return 1
@@ -123,6 +138,7 @@ def main():
     input_datos()
     wake_up_grbl()
     mapear()
+    reset_coordinates()
     close_serial()
 
 
