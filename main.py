@@ -96,13 +96,12 @@ def probe_z():
     gcodes = [["G91", 1],             # Tupla de tuplas:
               ["G1 Z1 F50", 1],       # 1er elemento: gcode
               ["G38.2 Z-10 F50", 2],  # 2do elemento: tipo mensaje de retorno
-              ["G38.5 Z01 F50", 2],     # Tipo 1: "ok"
-              ["G38.2 Z-1 F1", 2],     # Tipo 2: "PRB"
+              ["G38.5 Z01 F1", 2],      # Tipo 1: "ok"
+              ["G38.2 Z-1 F1", 2],      # Tipo 2: "PRB"
               ["G38.5 Z01 F1", 2],
-              # ["G92 Z0", 1],      # Establece coordenadas en Z = 0
-              # ["?", 1],
-              # ["G04 P5", 1],     # Pausa de 1seg
-              # ["?", 1],
+              ["?", 1],
+              ["G04 P5", 1],            # Pausa de 1seg
+              ["?", 1],
               ["$X", 1],
               ["M2", 1]
               ]
@@ -117,9 +116,11 @@ def reset_coordinates():
     # Verificar que la linea esté desocupada
     wait_clean_buffer()
 
-    gcodes = [["G92 X0 Z0 Y0", 1],
+    gcodes = [["?", 1],
+              ["G92 X0 Z0 Y0", 1],  # Establece coordenadas en Z = 0
               ["M2", 1]
               ]
+
     for i in range(len(gcodes)):
         send_to_serial(gcodes[i])
 
