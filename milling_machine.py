@@ -16,10 +16,9 @@ class milling_grbl():
     x_sup_der, y_sup_der = 0, 0
     x_cant, y_cant = 0, 0
     total_medidas = 0
-    avance_x = 0
-    avance_y = 0
-    z_pos_error = 0
-    posiciones_now = 0
+    avance_x, avance_y = 0, 0
+    posiciones_now, z_pos_error = 0, 0
+    z_max_depth, z_secure_depth = -1, 1
 
     def __init__(self):
         # self.x_inf_izq = float(input("X inferior izq: "))
@@ -30,7 +29,7 @@ class milling_grbl():
         # self.y_cant    = float(input("X cantidad med: "))
 
         puntos_extremos = [0, 0, 24.03, 8.77, 3, 2]  # Para patron de prueba
-        puntos_extremos = [0, 0, 10, 10, 2, 2]       # Para prueba rapida
+        # puntos_extremos = [0, 0, 10, 10, 2, 2]       # Para prueba rapida
         self.x_inf_izq, self.y_inf_izq = puntos_extremos[0], puntos_extremos[1]
         self.x_sup_der, self.y_sup_der = puntos_extremos[2], puntos_extremos[3]
         self.x_cant, self.y_cant = puntos_extremos[4], puntos_extremos[5]
@@ -47,19 +46,21 @@ class milling_grbl():
 
     def update_posicion(self):
         time.sleep(0.1)
-        print("\nupdate_posicion")
+        # print("\nupdate_posicion")
         gcode_to_send = "?" + "\r\n"
         ard_serial.write(bytes(gcode_to_send, encoding="ascii"))
         i = 1
         while True:
             grbl_says = str(ard_serial.readline())
             i += 1
-            print(i)
+            # print(i)
             if i > 5:
                 """ Si va a error (Ov:100,100,100), aplica recursividad para
                 resetear las coordenadas y volver a leer la posición.
                 Puede ocasionar una falla si se da el error cuando la posicion
-                sea distinta de 0,0,0 """
+                sea distinta de 0,0,0. De todas formas, lo que falla es el WCO
+                y no el MPos que contiene las coordenadas de posicion relativas
+                al WCO """
                 self.reset_coordinates()
                 self.update_posicion()
                 break
@@ -80,8 +81,10 @@ class milling_grbl():
                 self.y_pos = float(var_aux_a[1])
                 self.z_pos = float(var_aux_a[2])
                 self.posiciones_now = [self.x_pos, self.y_pos, self.z_pos]
-                print("Posicion grbl: " + str(self.posiciones_now) +
-                      str(self.z_pos_error))
+                # print("Posicion grbl: " + str(self.posiciones_now) +
+                #      str(self.z_pos_error))
+                # La correción de z, funciona si el valor de z es negativo o
+                # positivo. Probado!
                 self.z_pos = float(var_aux_a[2]) - self.z_pos_error
                 self.posiciones_now = [self.x_pos, self.y_pos, self.z_pos]
                 print("Posicion fix: " + str(self.posiciones_now))
@@ -89,12 +92,11 @@ class milling_grbl():
                 break
 
     def probe_z(self):
-        print("\nprobe_z")
+        # print("\nprobe_z")
         # 1er elemento: gcode. 2do elemento: Código que espera
-        gcodes = [["$X", "ok"], ["G91", "ok"], ["G1 Z0.5 F50", "ok"],
+        gcodes = [["$X", "ok"], ["G91", "ok"], ["G1 Z0.2 F100", "ok"],
                   ["G38.2 Z-10 F50", "PRB"], ["G38.5 Z01 F1", "PRB"],
-                  ["G38.2 Z-1 F1", "PRB"], ["G38.5 Z01 F1", "PRB"],
-                  # ["G04 P1", "ok"],  # Pausa en seg
+                  ["G04 P0.1", "ok"],  # Pausa en seg
                   ["M2", "ok"], ["G90", "ok"]
                   ]
         for i in range(len(gcodes)):
@@ -102,7 +104,7 @@ class milling_grbl():
         self.wait_clean_buffer()
 
     def avanzar(self, X_avance, Y_avance, velocidad):
-        print("\navanzar")
+        # print("\navanzar")
         # 1er elemento: gcode. 2do elemento: Código que espera
         gcodes = [["$X", "ok"], ["G90", "ok"], ["G1 Z1 F50", "ok"],
                   ["G1 X" + str(X_avance) + "Y" + str(Y_avance) +
@@ -114,7 +116,7 @@ class milling_grbl():
         self.wait_clean_buffer()
 
     def reset_coordinates(self):
-        print("\nreset_coordinates")
+        # print("\nreset_coordinates")
         gcodes = [["$X", "ok"], ["G92 X0.0 Y0.0", "ok"],
                   ["G92 Z0.0", "ok"]]
         for i in range(len(gcodes)):
@@ -133,7 +135,11 @@ class milling_grbl():
             # if grbl_says != "b''":   # Mostrar mensajes con contenido
             #    print(grbl_says)
             # Cuando encuentre el código esperado en el mensaje salir
-            if grbl_says.find(code_to_send[1]) > (-1):
+            if grbl_says.find("ok") > (-1):
+                # print("Grbl_says: " + grbl_says)
+                self.wait_clean_buffer()
+                break
+            if grbl_says.find("PRB") > (-1):
                 print("Grbl_says: " + grbl_says)
                 self.wait_clean_buffer()
                 break
@@ -149,13 +155,13 @@ class milling_grbl():
                 break                           # Salir del while
 
     def wake_up_grbl(self):
-        print("\nwake_up_grbl")
+        # print("\nwake_up_grbl")
         bytes_to_send = b'\r\n\r\n'
         ard_serial.write(bytes_to_send)
         time.sleep(2)            # Wait for grbl to initialize
         ard_serial.flushInput()  # Flush startup text in serial input
 
     def close_grbl(self):
-        print("\nclose_grbl")
+        # print("\nclose_grbl")
         ard_serial.close()
         return 1
