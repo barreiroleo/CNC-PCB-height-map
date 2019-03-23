@@ -1,0 +1,10 @@
+var_aux_a = str(b'<Idle|MPos:0.000,0.000,0.000|FS:0,0|Pn:P|WCO:0.000,6.000,-0.102>\r\n')
+indice_first_PRB = var_aux_a.find(":") + 1
+indice_second_PRB = var_aux_a.find("|", indice_first_PRB)
+var_aux_a = var_aux_a[indice_first_PRB:indice_second_PRB]
+print(var_aux_a)
+var_aux_a = var_aux_a.split(",")
+print(var_aux_a)
+for i in var_aux_a:
+    print(var_aux_a)
+
