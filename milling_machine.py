@@ -9,12 +9,12 @@ ard_serial = serial.Serial('/dev/ttyACM0', 115200, timeout=0.5)
 class milling_grbl():
     """ Definición de la clase milling:
         tupla puntos_extremos
-          [x_inf_izq, y_inf_izq, x_sup_der, y_sup_der, x_cant, y cant]
+          [x_inf_izq, y_inf_izq, x_sup_der, y_sup_der, x_divisiones, y cant]
     """
     x_pos, y_pos, z_pos = 0, 0, 0
     x_inf_izq, y_inf_izq = 0, 0
     x_sup_der, y_sup_der = 0, 0
-    x_cant, y_cant = 0, 0
+    x_divisiones, x_divisiones = 0, 0
     total_medidas = 0
     avance_x, avance_y = 0, 0
     posiciones_now, z_pos_error = 0, 0
@@ -23,20 +23,22 @@ class milling_grbl():
     def __init__(self):
         self.x_inf_izq = float(input("X inferior izq: "))
         self.y_inf_izq = float(input("Y inferior izq: "))
-        self.x_sup_der = float(input("X superior izq: "))
-        self.y_sup_der = float(input("Y superior izq: "))
-        self.x_cant    = int(input("X cantidad puntos: "))
-        self.y_cant    = int(input("Y cantidad puntos: "))
+        self.x_sup_der = float(input("X superior der: "))
+        self.y_sup_der = float(input("Y superior der: "))
+        while self.x_divisiones < 1:
+            self.x_divisiones    = int(input("X cantidad puntos: ")) - 1
+        while self.x_divisiones < 1:
+            self.x_divisiones    = int(input("Y cantidad puntos: ")) - 1
 
         # puntos_extremos = [0, 0, 24.03, 8.77, 3, 2]  # Para patron de prueba
         # puntos_extremos = [0, 0, 10, 10, 2, 2]       # Para prueba rapida
         # self.x_inf_izq, self.y_inf_izq = puntos_extremos[0], puntos_extremos[1]
         # self.x_sup_der, self.y_sup_der = puntos_extremos[2], puntos_extremos[3]
-        # self.x_cant, self.y_cant = puntos_extremos[4], puntos_extremos[5]
+        # self.x_divisiones, self.x_divisiones = puntos_extremos[4], puntos_extremos[5]
 
-        self.total_medidas = self.x_cant * self.y_cant
-        self.avance_x = (self.x_sup_der - self.x_inf_izq) / self.x_cant
-        self.avance_y = (self.y_sup_der - self.y_inf_izq) / self.y_cant
+        self.total_medidas = self.x_divisiones * self.x_divisiones
+        self.avance_x = (self.x_sup_der - self.x_inf_izq) / self.x_divisiones
+        self.avance_y = (self.y_sup_der - self.y_inf_izq) / self.x_divisiones
 
         tupla_posiciones = (self.x_inf_izq, self.y_inf_izq,
                             self.x_sup_der, self.y_sup_der)
