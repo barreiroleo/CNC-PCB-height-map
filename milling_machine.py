@@ -98,7 +98,7 @@ class milling_grbl():
                   ["G38.2 Z-10 F50", "PRB"], ["G38.5 Z01 F1", "PRB"],
                   ["G38.2 Z-10 F1", "PRB"], ["G38.5 Z01 F1", "PRB"],
                   ["G04 P0.1", "ok"],  # Pausa en seg
-                  ["M2", "ok"], ["G90", "ok"]
+                  ["G90", "ok"]
                   ]
         for i in range(len(gcodes)):
             self.send_to_grbl(gcodes[i])
@@ -109,8 +109,7 @@ class milling_grbl():
         # 1er elemento: gcode. 2do elemento: Código que espera
         gcodes = [["$X", "ok"], ["G90", "ok"], ["G1 Z1 F50", "ok"],
                   ["G1 X" + str(X_avance) + "Y" + str(Y_avance) +
-                   "F" + str(velocidad), "ok"],
-                  ["M2", "ok"]
+                   "F" + str(velocidad), "ok"]
                   ]
         for i in range(len(gcodes)):
             self.send_to_grbl(gcodes[i])
