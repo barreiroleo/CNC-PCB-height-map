@@ -40,7 +40,7 @@ def main():
     # Encabezado de fichero de mappeo
     mapFile.write(str(fresa.x_inf_izq) + ';' + str(fresa.y_inf_izq) + ';' +
                   str(fresa.x_sup_der) + ';' + str(fresa.y_sup_der) + "\n")
-    mapFile.write(str(fresa.x_divisiones) + ';' + str(fresa.y_divisiones) + ';' +
+    mapFile.write(str(fresa.x_divisiones + 1) + ';' + str(fresa.y_divisiones +1) + ';' +
                   str(fresa.z_max_depth) + ';' + str(fresa.z_secure_depth) + "\n")
     mapFile.write("0;20;20" + "\n")  # Valores de interpolación soft Candle
     fresa.wake_up_grbl()        # Iniciar comunicacion
