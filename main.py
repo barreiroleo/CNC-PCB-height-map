@@ -3,7 +3,7 @@ El script debe:
 Conectarse con el micro.
 Una vez que está en espera el micro, preguntar:
   Margenes de escaneo: [{x_inf_izq,y_inf_izq},{x2,y2},{x3,y3},{xf,yf}]
-  Cantidad de puntos de escaneo: [{x_cant},{y_cant}]
+  Cantidad de puntos de escaneo: [{x_divisiones},{y_divisiones}]
 Con los datos procesar:
   Dividir la distancia máxima de cada eje entre la cantidad de puntos a sensar
   El valor obtenido es el avance que hay que darle al código G (¿Coord relat?)
@@ -40,7 +40,7 @@ def main():
     # Encabezado de fichero de mappeo
     mapFile.write(str(fresa.x_inf_izq) + ';' + str(fresa.y_inf_izq) + ';' +
                   str(fresa.x_sup_der) + ';' + str(fresa.y_sup_der) + "\n")
-    mapFile.write(str(fresa.x_cant) + ';' + str(fresa.y_cant) + ';' +
+    mapFile.write(str(fresa.x_divisiones) + ';' + str(fresa.y_divisiones) + ';' +
                   str(fresa.z_max_depth) + ';' + str(fresa.z_secure_depth) + "\n")
     mapFile.write("0;20;20" + "\n")  # Valores de interpolación soft Candle
     fresa.wake_up_grbl()        # Iniciar comunicacion
@@ -48,9 +48,9 @@ def main():
     initialize_high()
 
     meassurements_y = []
-    for i in range(fresa.y_cant):
+    for i in range(fresa.y_divisiones):
         meassurements_x = []
-        for j in range(fresa.x_cant):
+        for j in range(fresa.x_divisiones):
             fresa.avanzar(fresa.x_inf_izq + fresa.avance_x * j,
                           fresa.y_inf_izq + fresa.avance_y * i, 200)
             fresa.probe_z()
