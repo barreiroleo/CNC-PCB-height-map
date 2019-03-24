@@ -14,7 +14,7 @@ from milling_machine import milling_grbl
 # import pdb
 # pdb.set_trace()
 # Declaraciones de salida de texto
-mapFile = open('outputFiles/mapFile.map', 'w')
+mapFile = open('/home/leonardo/Escritorio/pyMapFile.map', 'w')
 logFile = open('outputFiles/logFile.txt', 'w')
 # para escribir: f.write()
 # para cerrar: f.close()
@@ -41,7 +41,7 @@ def main():
     mapFile.write(str(fresa.x_inf_izq) + ';' + str(fresa.y_inf_izq) + ';' +
                   str(fresa.x_sup_der) + ';' + str(fresa.y_sup_der) + "\n")
     mapFile.write(str(fresa.x_cant) + ';' + str(fresa.y_cant) + ';' +
-                  str(fresa.z_max_depth) + str(fresa.z_secure_depth) + "\n")
+                  str(fresa.z_max_depth) + ';' + str(fresa.z_secure_depth) + "\n")
     mapFile.write("0;20;20" + "\n")  # Valores de interpolación soft Candle
     fresa.wake_up_grbl()        # Iniciar comunicacion
 
@@ -63,7 +63,7 @@ def main():
         meassurements_y.append(meassurements_x)
     print("Finish mapping")
     print(meassurements_y)
-    meassurements_y.reverse()  # Ordena las mediciones respecto al eje Y.
+    # meassurements_y.reverse()  # Ordena las mediciones respecto al eje Y. No hace falta para Candle
     for i in range(len(meassurements_y)):
         for j in range(len(meassurements_y[i])):
             mapFile.write(str(meassurements_y[i][j]))

@@ -21,18 +21,18 @@ class milling_grbl():
     z_max_depth, z_secure_depth = -1, 1
 
     def __init__(self):
-        # self.x_inf_izq = float(input("X inferior izq: "))
-        # self.y_inf_izq = float(input("Y inferior izq: "))
-        # self.x_sup_der = float(input("X superior izq: "))
-        # self.y_sup_der = float(input("X superior izq: "))
-        # self.x_cant    = float(input("X cantidad med: "))
-        # self.y_cant    = float(input("X cantidad med: "))
+        self.x_inf_izq = float(input("X inferior izq: "))
+        self.y_inf_izq = float(input("Y inferior izq: "))
+        self.x_sup_der = float(input("X superior izq: "))
+        self.y_sup_der = float(input("Y superior izq: "))
+        self.x_cant    = int(input("X cantidad puntos: "))
+        self.y_cant    = int(input("Y cantidad puntos: "))
 
-        puntos_extremos = [0, 0, 24.03, 8.77, 3, 2]  # Para patron de prueba
+        # puntos_extremos = [0, 0, 24.03, 8.77, 3, 2]  # Para patron de prueba
         # puntos_extremos = [0, 0, 10, 10, 2, 2]       # Para prueba rapida
-        self.x_inf_izq, self.y_inf_izq = puntos_extremos[0], puntos_extremos[1]
-        self.x_sup_der, self.y_sup_der = puntos_extremos[2], puntos_extremos[3]
-        self.x_cant, self.y_cant = puntos_extremos[4], puntos_extremos[5]
+        # self.x_inf_izq, self.y_inf_izq = puntos_extremos[0], puntos_extremos[1]
+        # self.x_sup_der, self.y_sup_der = puntos_extremos[2], puntos_extremos[3]
+        # self.x_cant, self.y_cant = puntos_extremos[4], puntos_extremos[5]
 
         self.total_medidas = self.x_cant * self.y_cant
         self.avance_x = (self.x_sup_der - self.x_inf_izq) / self.x_cant
@@ -96,6 +96,7 @@ class milling_grbl():
         # 1er elemento: gcode. 2do elemento: Código que espera
         gcodes = [["$X", "ok"], ["G91", "ok"], ["G1 Z0.2 F100", "ok"],
                   ["G38.2 Z-10 F50", "PRB"], ["G38.5 Z01 F1", "PRB"],
+                  ["G38.2 Z-10 F1", "PRB"], ["G38.5 Z01 F1", "PRB"],
                   ["G04 P0.1", "ok"],  # Pausa en seg
                   ["M2", "ok"], ["G90", "ok"]
                   ]
