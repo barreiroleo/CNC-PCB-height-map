@@ -48,9 +48,9 @@ def main():
     initialize_high()
 
     meassurements_y = []
-    for i in range(fresa.y_divisiones):
+    for i in range(fresa.y_divisiones + 1): # y_divisiones + 1 = cantidad de puntos
         meassurements_x = []
-        for j in range(fresa.x_divisiones):
+        for j in range(fresa.x_divisiones + 1):
             fresa.avanzar(fresa.x_inf_izq + fresa.avance_x * j,
                           fresa.y_inf_izq + fresa.avance_y * i, 200)
             fresa.probe_z()
