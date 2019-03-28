@@ -96,9 +96,10 @@ class milling_grbl():
     def probe_z(self):
         # print("\nprobe_z")
         # 1er elemento: gcode. 2do elemento: Código que espera
+        # G21 G91 G38.2 Z-30 F50; G38.5 Z1 F1; G38.2 Z-1 F1; G38.5 Z1 F0.5;G90
         gcodes = [["$X", "ok"], ["G91", "ok"], ["G1 Z0.2 F100", "ok"],
                   ["G38.2 Z-10 F50", "PRB"], ["G38.5 Z01 F1", "PRB"],
-                  ["G38.2 Z-10 F1", "PRB"], ["G38.5 Z01 F1", "PRB"],
+                  ["G38.2 Z-1 F1", "PRB"], ["G38.5 Z01 F1", "PRB"],
                   ["G04 P0.1", "ok"],  # Pausa en seg
                   ["G90", "ok"]
                   ]
@@ -106,12 +107,12 @@ class milling_grbl():
             self.send_to_grbl(gcodes[i])
         self.wait_clean_buffer()
 
-    def avanzar(self, X_avance, Y_avance, velocidad):
+    def avanzar(self, X_avance, Y_avance):
         # print("\navanzar")
         # 1er elemento: gcode. 2do elemento: Código que espera
-        gcodes = [["$X", "ok"], ["G90", "ok"], ["G1 Z1 F50", "ok"],
-                  ["G1 X" + str(X_avance) + "Y" + str(Y_avance) +
-                   "F" + str(velocidad), "ok"]
+        # G90 coordenadas absolutas
+        gcodes = [["$X", "ok"], ["G90", "ok"], ["G0 Z2", "ok"],
+                  ["G0 X" + str(X_avance) + "Y" + str(Y_avance), "ok"]
                   ]
         for i in range(len(gcodes)):
             self.send_to_grbl(gcodes[i])

@@ -52,7 +52,7 @@ def main():
         meassurements_x = []
         for j in range(fresa.x_divisiones + 1):
             fresa.avanzar(fresa.x_inf_izq + fresa.avance_x * j,
-                          fresa.y_inf_izq + fresa.avance_y * i, 200)
+                          fresa.y_inf_izq + fresa.avance_y * i)
             fresa.probe_z()
             fresa.update_posicion()
             meassurements_x.append(fresa.z_pos)
@@ -71,7 +71,7 @@ def main():
                 mapFile.write(";")
         mapFile.write("\n")
 
-    fresa.avanzar(0.0, 0.0, 200)
+    fresa.send_to_grbl(["G0 x0 y0 z2","ok"])
     fresa.wait_clean_buffer()
     fresa.update_posicion()
     fresa.close_grbl()
