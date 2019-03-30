@@ -70,8 +70,8 @@ def main():
             if j < (len(meassurements_y[i])-1):
                 mapFile.write(";")
         mapFile.write("\n")
-
-    fresa.send_to_grbl(["G0 x0 y0 z2","ok"])
+	fresa.send_to_grbl(["G0 z2","ok"])
+    fresa.send_to_grbl(["G0 x0 y0","ok"])
     fresa.wait_clean_buffer()
     fresa.update_posicion()
     fresa.close_grbl()
