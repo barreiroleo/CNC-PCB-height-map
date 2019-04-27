@@ -40,7 +40,7 @@ def main():
     # Encabezado de fichero de mappeo
     mapFile.write(str(fresa.x_inf_izq) + ';' + str(fresa.y_inf_izq) + ';' +
                   str(fresa.x_sup_der) + ';' + str(fresa.y_sup_der) + "\n")
-    mapFile.write(str(fresa.x_divisiones + 1) + ';' + str(fresa.y_divisiones +1) + ';' +
+    mapFile.write(str(fresa.x_divisiones + 1) + ';' + str(fresa.y_divisiones + 1) + ';' +
                   str(fresa.z_max_depth) + ';' + str(fresa.z_secure_depth) + "\n")
     mapFile.write("0;20;20" + "\n")  # Valores de interpolación soft Candle
     fresa.wake_up_grbl()        # Iniciar comunicacion
@@ -48,7 +48,7 @@ def main():
     initialize_high()
 
     meassurements_y = []
-    for i in range(fresa.y_divisiones + 1): # y_divisiones + 1 = cantidad de puntos
+    for i in range(fresa.y_divisiones + 1):  # y_divisiones + 1 = cantidad de puntos
         meassurements_x = []
         for j in range(fresa.x_divisiones + 1):
             fresa.avanzar(fresa.x_inf_izq + fresa.avance_x * j,
@@ -67,11 +67,11 @@ def main():
     for i in range(len(meassurements_y)):
         for j in range(len(meassurements_y[i])):
             mapFile.write(str(meassurements_y[i][j]))
-            if j < (len(meassurements_y[i])-1):
+            if j < (len(meassurements_y[i]) - 1):
                 mapFile.write(";")
         mapFile.write("\n")
-	fresa.send_to_grbl(["G0 z2","ok"])
-    fresa.send_to_grbl(["G0 x0 y0","ok"])
+    fresa.send_to_grbl(["G0 z2", "ok"])
+    fresa.send_to_grbl(["G0 x0 y0", "ok"])
     fresa.wait_clean_buffer()
     fresa.update_posicion()
     fresa.close_grbl()

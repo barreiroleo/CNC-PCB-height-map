@@ -99,7 +99,7 @@ class milling_grbl():
         # G21 G91 G38.2 Z-30 F50; G38.5 Z1 F1; G38.2 Z-1 F1; G38.5 Z1 F0.5;G90
         gcodes = [["$X", "ok"], ["G91", "ok"], ["G1 Z0.2 F100", "ok"],
                   ["G38.2 Z-10 F50", "PRB"], ["G38.5 Z01 F1", "PRB"],
-                  ["G38.2 Z-1 F1", "PRB"], ["G38.5 Z01 F1", "PRB"],
+                  ["G38.2 Z-1 F1", "PRB"],
                   ["G04 P0.1", "ok"],  # Pausa en seg
                   ["G90", "ok"]
                   ]
